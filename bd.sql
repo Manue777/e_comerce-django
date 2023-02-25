@@ -4,3 +4,7 @@ CREATE DATABASE E_COMERCE;
 
 USE E_COMERCE;
 SELECT*FROM Productos;
+
+SELECT*FROM Usuarios;
+
+UPDATE usuarios  SET tipoUsuario = 'ADMINISTRADOR' WHERE id=1;

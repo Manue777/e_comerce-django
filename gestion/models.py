@@ -85,3 +85,24 @@ class UsuarioModel(AbstractBaseUser, PermissionsMixin):
     objects = UsuarioManager()
     class Meta:
         db_table = 'usuarios'
+
+# class ClientesModel(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     nombre = models.CharField(max_length=45, null=False)
+#     apellido = models.CharField(max_length=45, null=False)
+#     correo = models.CharField(max_length=45, null=False)
+#     dni = models.CharField(max_length=8, null=False)
+
+#     class Meta:
+#         db_table = 'clientes'
+
+# class OrdenesModel(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     codigo = models.CharField(max_length=45, null=False)
+#     observacion = models.CharField(max_length=100, null=True)
+#     estado = models.BooleanField(default=True, null=True)
+#     cliente_id = models.ForeignKey(ClientesModel, on_delete=models.CASCADE)
+#     usuario_id = models.ForeignKey(UsuarioModel, on_delete=models.CASCADE)
+
+#     class Meta:
+#         db_table = 'ordenes'

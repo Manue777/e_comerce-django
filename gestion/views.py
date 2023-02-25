@@ -1,11 +1,13 @@
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView,CreateAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView,CreateAPIView, UpdateAPIView
 from .models import CategoriaModel, ProductoModel, UsuarioModel
-from .serializers import CategoriaSerializer, CrearProductoSerializer, CategoriaConProductosSerializer, MostrarProductoSerializer, RegistroUsuarioSerializer
+from .serializers import CategoriaSerializer, ProductoSerializer, CrearProductoSerializer, CategoriaConProductosSerializer, MostrarProductoSerializer, RegistroUsuarioSerializer
 
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
-from .permissions import SoloAdministradores
+from .permissions import SoloAdministradores, SoloTrabajador
+
+from rest_framework import  status
 # List > Listar (get)
 # Create > Crear (post)
 
@@ -95,7 +97,7 @@ class ProductoApiView(ListCreateAPIView):
 class ProductoDestroyApiView(DestroyAPIView):
     # queryset = PlatoModel.objects.all()
     # serializer_class = PlatoSerializer
-    # permission_classes = [IsAuthenticated, SoloTrabajador]
+    permission_classes = [IsAuthenticated, SoloTrabajador]
     def delete(self, request: Request, pk: int):
         print(pk)
         productoEncontrado = ProductoModel.objects.filter(id = pk, disponibilidad = True).first()
@@ -164,3 +166,55 @@ class RegistroUsuarioApiView(CreateAPIView):
         return Response(data={
             'message': 'Usuario creado exitosamente'
         }, status=201)
+
+
+class ActualizarCategoriaApiView(UpdateAPIView):
+    queryset = CategoriaModel.objects.all()
+    serializer_class = CategoriaSerializer
+
+    def put(self, request, categoria_id):
+        try:
+            categoria = self.get_queryset().get(id=categoria_id)
+            serializer = self.get_serializer(categoria, data=request.data)
+            if serializer.is_valid():
+                categoria_actualizada = serializer.update(categoria, serializer.validated_data)
+                nuevo_serializador = self.get_serializer(categoria_actualizada)
+                return Response(nuevo_serializador.data, status=status.HTTP_201_CREATED)
+
+            # error = 'Faltan campos'
+            # for campo in categoria.errors:
+            #     error = error + ' ' + campo + ', '
+            return Response({
+                'message': 'faltan campos'
+            })
+        except Exception as e:
+            return Response({
+                'message': 'Internal server error',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ActualizarProductoApiView(UpdateAPIView):
+    queryset = ProductoModel.objects.all()
+    serializer_class = ProductoSerializer
+
+    def put(self, request, producto_id):
+        try:
+            producto = self.get_queryset().get(id=producto_id)
+            serializer = self.get_serializer(producto, data=request.data)
+            if serializer.is_valid():
+                producto_actualizado = serializer.update(producto, serializer.validated_data)
+                nuevo_serializador = self.get_serializer(producto_actualizado)
+                return Response(nuevo_serializador.data, status=status.HTTP_201_CREATED)
+
+            # error = 'Faltan campos'
+            # for campo in categoria.errors:
+            #     error = error + ' ' + campo + ', '
+            return Response({
+                'message': 'faltan campos'
+            })
+        except Exception as e:
+            return Response({
+                'message': 'Internal server error',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+   

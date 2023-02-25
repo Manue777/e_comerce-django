@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CategoriaModel, ProductoModel, UsuarioModel
+from .models import ProductoModel, CategoriaModel, UsuarioModel
 
 class CategoriaSerializer(serializers.ModelSerializer):
     # cuando utilizamos un serializador basandonos en un modelo se declara la clase Meta
@@ -13,6 +13,14 @@ class CategoriaSerializer(serializers.ModelSerializer):
         # exclude = ['id']
         
         # NOTA: no se puede trabajar con el exclude y el fields a la vez, o es uno o es el otro
+
+class ProductoSerializer(serializers.ModelSerializer):
+    # estado = serializers.BooleanField(read_only=True)
+    class Meta:
+        model = ProductoModel
+        # fields = ['nombre', 'precio']
+        fields = '__all__'
+        # exclude = ['estado']
 
 
 class MostrarProductoSerializer(serializers.ModelSerializer):
@@ -33,7 +41,7 @@ class CategoriaConProductosSerializer(serializers.ModelSerializer):
     # source > sirve para indicar que atributo del modelo tengo que utilizar para hacer que funcione, sin embargo si utilizamos el atributo original no es necesario colocar el source (porque dara un error de redundancia)
     info_adicional = CrearProductoSerializer(many=True, source='productos')
     class Meta:
-        model = CategoriaModel
+        model = ProductoModel
         fields = '__all__'
         
 class RegistroUsuarioSerializer(serializers.ModelSerializer):
@@ -47,3 +55,5 @@ class RegistroUsuarioSerializer(serializers.ModelSerializer):
                 'write_only': True
             },
         }
+
+
