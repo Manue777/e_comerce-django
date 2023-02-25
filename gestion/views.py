@@ -1,6 +1,6 @@
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView,CreateAPIView, UpdateAPIView
-from .models import CategoriaModel, ProductoModel, UsuarioModel
-from .serializers import CategoriaSerializer, ProductoSerializer, CrearProductoSerializer, CategoriaConProductosSerializer, MostrarProductoSerializer, RegistroUsuarioSerializer
+from .models import CategoriaModel, ProductoModel, UsuarioModel,OrdenesModel,DetallesOrdenModel
+from .serializers import CategoriaSerializer, ProductoSerializer, CrearProductoSerializer, CategoriaConProductosSerializer, MostrarProductoSerializer, RegistroUsuarioSerializer, OrdenesSerializer, DetallesOrdenSerializer, GetOrdenesSerializer
 
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -10,6 +10,15 @@ from .permissions import SoloAdministradores, SoloTrabajador
 from rest_framework import  status
 # List > Listar (get)
 # Create > Crear (post)
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from rest_framework import generics, status
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from django.db import transaction
+
+
 
 class CategoriaApiView(ListCreateAPIView):
     # secuencia de permisos > el primer permiso se debe de cumplir para continuar con el segundo permiso y asi sucesivamente, si alguno falla (retorna False) entonces todo termina
@@ -217,4 +226,50 @@ class ActualizarProductoApiView(UpdateAPIView):
                 'message': 'Internal server error',
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-   
+        
+
+class OrdenesView(generics.GenericAPIView):
+    queryset = OrdenesModel.objects.all()
+    serializer_class = OrdenesSerializer
+
+    # @transaction.atomic
+    def post(self, request):
+        try:
+            print (request.data)
+            orden = self.get_serializer(data=request.data)
+            if orden.is_valid():
+                usuario = UsuarioModel(**request.data['usuario'])
+                usuario.save()
+
+                # usuario = User.objects.get(id=request.data['usuario_id'])
+                orden_dict = {
+                    'codigo': request.data['codigo'],
+                    'observacion': request.data['observacion'],
+                    # 'usuario_id': usuario
+                }
+                orden = OrdenesModel(**orden_dict)
+                orden.save()
+
+                for detalle in request.data['detalle']:
+                    producto = ProductoModel.objects.get(id=detalle['producto_id'])
+                    detalle_dict = {
+                        'cantidad': detalle['cantidad'],
+                        'producto_id': producto,
+                        'orden_id': orden
+                    }
+                    detalle = DetallesOrdenModel(**detalle_dict)
+                    detalle.save()
+            return Response({
+                    'message': 'Operacion exitosa'
+            }, status=status.HTTP_201_CREATED)
+            error = 'Faltan campos'
+            for campo in orden.errors:
+                error = error + ' ' + campo + ', '
+            return Response({
+                'message': error
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                'message': 'Internal server error',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  

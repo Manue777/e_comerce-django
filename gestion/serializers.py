@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProductoModel, CategoriaModel, UsuarioModel
+from .models import ProductoModel, CategoriaModel, UsuarioModel, DetallesOrdenModel, OrdenesModel
 
 class CategoriaSerializer(serializers.ModelSerializer):
     # cuando utilizamos un serializador basandonos en un modelo se declara la clase Meta
@@ -41,7 +41,7 @@ class CategoriaConProductosSerializer(serializers.ModelSerializer):
     # source > sirve para indicar que atributo del modelo tengo que utilizar para hacer que funcione, sin embargo si utilizamos el atributo original no es necesario colocar el source (porque dara un error de redundancia)
     info_adicional = CrearProductoSerializer(many=True, source='productos')
     class Meta:
-        model = ProductoModel
+        model = CategoriaModel
         fields = '__all__'
         
 class RegistroUsuarioSerializer(serializers.ModelSerializer):
@@ -55,5 +55,31 @@ class RegistroUsuarioSerializer(serializers.ModelSerializer):
                 'write_only': True
             },
         }
+class UsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['id', 'nombre','apellido','correo' ]
+        model = UsuarioModel
+        # extra_kwargs > sirve para modificar configuracion de los atributos del modelo
+        # puedo indicar el atributo y decirle que quiero que sea 'write_only' (solo escritura) 'read_only' (solo lectura)
+        
 
+class DetallesOrdenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetallesOrdenModel
+        fields = ['cantidad', 'producto_id']
 
+class OrdenesSerializer(serializers.ModelSerializer):
+    usuario_id = UsuarioSerializer(source='id')
+    # detalle =  DetallesOrdenSerializer(many=True, write_only=True)
+
+    class Meta:
+        model = OrdenesModel
+        exclude = ['estado']
+
+class GetOrdenesSerializer(serializers.ModelSerializer):
+    # cliente = ClientesSerializer(source='id')
+    # detalle
+    # usuario (vendedor)
+    class Meta:
+        model = OrdenesModel
+        fields = '__all__'
